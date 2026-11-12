@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Draftroom</title>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap">
+  <style>
+    :root {
+      --bg: #e6ecee;
+      --panel: #f6f8f9;
+      --paper: #fff;
+      --ink: #14232b;
+      --muted: #5b6b73;
+      --line: #cdd7db;
+      --accent: #1f6f78;
+      --shared: #a8620f;
+      --danger: #b3261e
+    }
+
+    @media (prefers-color-scheme:dark) {
+      :root {
+        --bg: #10191d;
+        --panel: #16232a;
+        --paper: #1c2b33;
+        --ink: #e4ecef;
+        --muted: #93a4ac;
+        --line: #2c3f48;
+        --accent: #5bb5bf;
+        --shared: #e0a458;
+        --danger: #f2877f
+      }
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font: 15px/1.5 Figtree, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      height: 100vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+      color: inherit
+    }
+
+    button {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer
+    }
+
+    button:hover {
+      border-color: var(--accent)
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--paper);
+      font-weight: 600
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    [contenteditable]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line)
+    }
+
+    header h1 {
+      font: 600 18px Newsreader, serif;
+      margin: 0;
+      flex: 1
+    }
+
+    #app {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 0
+    }
+
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 14px;
+      overflow: auto
+    }
+
+    aside .actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px
+    }
+
+    aside h2 {
+      font: 600 13px Figtree;
+      color: var(--muted);
+      margin: 16px 0 6px
+    }
+
+    .doc {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-left: 3px solid transparent;
+      border-radius: 0 6px 6px 0;
+      background: none;
+      padding: 7px 10px
+    }
+
+    .doc.active {
+      background: var(--paper);
+      border-left-color: var(--accent)
+    }
+
+    .doc.shared {
+      border-left-color: var(--shared)
+    }
+
+    .doc small {
+      display: block;
+      color: var(--muted)
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      padding: 4px 10px
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0
+    }
+
+    #bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 20px;
+      flex-wrap: wrap
+    }
+
+    #title {
+      flex: 1;
+      min-width: 160px;
+      font: 600 22px Newsreader, serif;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: none;
+      padding: 4px 8px
+    }
+
+    #title:hover,
+    #title:focus {
+      border-color: var(--line);
+      background: var(--paper)
+    }
+
+    #status {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .badge {
+      font-size: 13px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--shared);
+      color: var(--shared)
+    }
+
+    #tools {
+      display: flex;
+      gap: 4px;
+      padding: 0 20px 8px;
+      flex-wrap: wrap
+    }
+
+    #tools button {
+      min-width: 36px
+    }
+
+    #scroll {
+      flex: 1;
+      overflow: auto;
+      padding: 0 20px 24px
+    }
+
+    #editor {
+      max-width: 760px;
+      min-height: 100%;
+      margin: 0 auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 40px 48px;
+      font: 18px/1.7 Newsreader, serif
+    }
+
+    #editor h1 {
+      font-size: 2em;
+      line-height: 1.2
+    }
+
+    #editor h2 {
+      font-size: 1.4em;
+      line-height: 1.3
+    }
+
+    #editor[contenteditable=false] {
+      opacity: .92
+    }
+
+    #blank {
+      margin: auto;
+      color: var(--muted);
+      text-align: center;
+      max-width: 340px
+    }
+
+    dialog {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--ink);
+      padding: 20px;
+      width: min(420px, 92vw)
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, .4)
+    }
+
+    dialog h3 {
+      margin: 0 0 12px;
+      font: 600 18px Newsreader, serif
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0;
+      align-items: center
+    }
+
+    .row input,
+    .row select {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper)
+    }
+
+    .err {
+      color: var(--danger);
+      min-height: 1.4em;
+      font-size: 14px
+    }
+
+    #login {
+      margin: auto;
+      text-align: center
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--paper);
+      padding: 8px 14px;
+      border-radius: 6px;
+      display: none
+    }
+
+    @media(max-width:720px) {
+      #app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr
+      }
+
+      aside {
+        max-height: 35vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--line)
+      }
+
+      #editor {
+        padding: 24px 18px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Draftroom</h1><span id="who"></span><button id="logout" hidden>Sign out</button>
+  </header>
+  <div id="login" hidden>
+    <h2>Sign in</h2>
+    <p>Demo accounts: pick one. Open a second browser profile to try sharing.</p>
+    <div class="row" id="users" style="justify-content:center"></div>
+  </div>
+  <div id="app" hidden>
+    <aside>
+      <div class="actions">
+        <button class="primary" id="new">New document</button>
+        <button id="uploadBtn" title="Supported: .txt, .md, .docx (max 2 MB)">Upload file</button>
+        <input type="file" id="file" accept=".txt,.md,.docx" hidden>
+      </div>
+      <div class="empty" style="padding:0 0 8px">Upload supports .txt, .md and .docx, up to 2 MB.</div>
+      <h2>My documents</h2>
+      <div id="owned"></div>
+      <h2>Shared with me</h2>
+      <div id="shared"></div>
+    </aside>
+    <main>
+      <div id="blank" hidden>
+        <p>Select a document, create a new one, or upload a file to start writing.</p>
+      </div>
+      <div id="pane" hidden style="display:none;flex-direction:column;flex:1;min-height:0">
+        <div id="bar">
+          <input id="title" aria-label="Document title" maxlength="120">
+          <span class="badge" id="badge" hidden></span>
+          <span id="status" role="status"></span>
+          <button id="share">Share</button><button id="del">Delete</button>
+        </div>
+        <div id="tools" role="toolbar" aria-label="Formatting">
+          <button data-cmd="bold" title="Bold"><b>B</b></button>
+          <button data-cmd="italic" title="Italic"><i>I</i></button>
+          <button data-cmd="underline" title="Underline"><u>U</u></button>
+          <button data-block="h1">Heading</button><button data-block="h2">Subheading</button><button
+            data-block="p">Body</button>
+          <button data-cmd="insertUnorderedList">• List</button><button data-cmd="insertOrderedList">1. List</button>
+        </div>
+        <div id="scroll">
+          <div id="editor" contenteditable="true" aria-label="Document body"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <dialog id="shareDlg">
+    <h3>Share document</h3>
+    <div class="row"><input id="shareUser" list="userList" placeholder="Username (alice, bob, carol)"
+        aria-label="Username"><datalist id="userList"></datalist>
+      <select id="shareRole" aria-label="Access">
+        <option value="edit">Can edit</option>
+        <option value="view">Can view</option>
+      </select>
+    </div>
+    <div class="err" id="shareErr"></div>
+    <div id="shareList"></div>
+    <div class="row" style="justify-content:flex-end"><button id="shareAdd" class="primary">Grant access</button><button
+        id="shareClose">Done</button></div>
+  </dialog>
+  <div id="toast"></div>
+  <script>
+    const $ = (s) => document.querySelector(s);
+    let me = null, users = [], cur = null, saveTimer = null, dirty = false;
+
+    async function api(path, opts = {}) {
+      if (opts.body && !(opts.body instanceof FormData)) { opts.headers = { 'content-type': 'application/json' }; opts.body = JSON.stringify(opts.body); }
+      const r = await fetch('/api' + path, opts);
+      const data = await r.json().catch(() => ({}));
+      if (r.status === 401 && me) { me = null; boot(); }
+      if (!r.ok) throw new Error(data.error || 'Request failed.');
+      return data;
+    }
+    function toast(msg) { const t = $('#toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 3500); }
+    const guard = (fn) => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message); } };
+
+    async function boot() {
+      try { const d = await api('/me'); me = d.username; users = d.users; } catch { me = null; }
+      $('#login').hidden = !!me; $('#app').hidden = !me; $('#logout').hidden = !me;
+      $('#who').textContent = me ? `Signed in as ${me}` : '';
+      if (!me) {
+        $('#users').innerHTML = '';
+        for (const u of ['alice', 'bob', 'carol']) { const b = document.createElement('button'); b.textContent = u; b.onclick = guard(async () => { await api('/login', { method: 'POST', body: { username: u } }); cur = null; await boot(); }); $('#users').append(b); }
+        return;
+      }
+      $('#userList').innerHTML = users.filter((u) => u !== me).map((u) => `<option value="${u}">`).join('');
+      await refresh(); show(null);
+      const last = location.hash.slice(1); if (last) open(last).catch(() => { });
+    }
+
+    async function refresh() {
+      const { owned, shared } = await api('/docs');
+      const render = (el, list, msg) => {
+        el.innerHTML = '';
+        if (!list.length) { el.innerHTML = `<div class="empty">${msg}</div>`; return; }
+        for (const d of list) {
+          const b = document.createElement('button');
+          b.className = 'doc' + (d.role !== 'owner' ? ' shared' : '') + (cur && cur.id === d.id ? ' active' : '');
+          const meta = d.role === 'owner' ? 'Owned by you' : `Shared by ${d.owner} · ${d.role === 'edit' ? 'can edit' : 'view only'}`;
+          b.innerHTML = `<span></span><small></small>`; b.firstChild.textContent = d.title; b.lastChild.textContent = meta;
+          b.onclick = guard(() => open(d.id)); el.append(b);
+        }
+      };
+      render($('#owned'), owned, 'No documents yet.');
+      render($('#shared'), shared, 'Nothing shared with you yet.');
+    }
+
+    function show(doc) {
+      $('#blank').hidden = !!doc; $('#blank').style.display = doc ? 'none' : '';
+      $('#pane').style.display = doc ? 'flex' : 'none';
+    }
+    async function flush() { if (dirty) await save(); }
+    async function open(id) {
+      await flush();
+      cur = await api('/docs/' + id);
+      location.hash = id; show(cur);
+      const canEdit = cur.role !== 'view';
+      $('#title').value = cur.title; $('#title').readOnly = !canEdit;
+      $('#editor').innerHTML = cur.content; $('#editor').contentEditable = canEdit;
+      $('#tools').style.display = canEdit ? 'flex' : 'none';
+      $('#share').hidden = $('#del').hidden = cur.role !== 'owner';
+      const badge = $('#badge'); badge.hidden = cur.role === 'owner';
+      badge.textContent = cur.role === 'edit' ? `Shared by ${cur.owner} · can edit` : `Shared by ${cur.owner} · view only`;
+      $('#status').textContent = 'Saved'; dirty = false; refresh();
+    }
+
+    function schedule() { if (cur.role === 'view') return; dirty = true; $('#status').textContent = 'Unsaved changes…'; clearTimeout(saveTimer); saveTimer = setTimeout(() => save().catch((e) => { $('#status').textContent = 'Save failed'; toast(e.message); }), 800); }
+    async function save() {
+      clearTimeout(saveTimer); if (!cur) return;
+      const title = $('#title').value.trim();
+      if (!title) { $('#title').value = cur.title; toast('Title cannot be empty.'); }
+      const body = { content: $('#editor').innerHTML, title: title || cur.title };
+      $('#status').textContent = 'Saving…';
+      const r = await api('/docs/' + cur.id, { method: 'PATCH', body });
+      cur.title = r.title; dirty = false; $('#status').textContent = 'Saved'; refresh();
+    }
+    $('#editor').addEventListener('input', schedule);
+    $('#title').addEventListener('input', schedule);
+    window.addEventListener('beforeunload', (e) => { if (dirty) e.preventDefault(); });
+
+    $('#tools').addEventListener('mousedown', (e) => e.preventDefault()); // keep editor selection
+    $('#tools').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      $('#editor').focus();
+      if (b.dataset.cmd) document.execCommand(b.dataset.cmd);
+      else document.execCommand('formatBlock', false, b.dataset.block);
+      schedule();
+    });
+    $('#editor').addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); save().catch((x) => toast(x.message)); } });
+
+    $('#new').onclick = guard(async () => { const d = await api('/docs', { method: 'POST', body: { title: 'Untitled document' } }); await open(d.id); $('#title').select(); });
+    $('#uploadBtn').onclick = () => $('#file').click();
+    $('#file').onchange = guard(async () => {
+      const f = $('#file').files[0]; $('#file').value = ''; if (!f) return;
+      const fd = new FormData(); fd.append('file', f);
+      const d = await api('/upload', { method: 'POST', body: fd }); toast('Imported ' + f.name); await open(d.id);
+    });
+    $('#del').onclick = guard(async () => {
+      if (!confirm(`Delete “${cur.title}”? This also removes access for everyone it was shared with.`)) return;
+      await api('/docs/' + cur.id, { method: 'DELETE' }); cur = null; dirty = false; location.hash = ''; show(null); await refresh();
+    });
+    $('#logout').onclick = guard(async () => { await flush(); await api('/logout', { method: 'POST' }); me = null; location.hash = ''; boot(); });
+
+    async function renderShares() {
+      const d = await api('/docs/' + cur.id); const el = $('#shareList'); el.innerHTML = '';
+      if (!d.shares.length) el.innerHTML = '<div class="empty">Not shared with anyone yet.</div>';
+      for (const s of d.shares) {
+        const r = document.createElement('div'); r.className = 'row';
+        r.innerHTML = `<span style="flex:1"></span><span class="empty"></span><button>Remove</button>`;
+        r.children[0].textContent = s.username; r.children[1].textContent = s.role === 'edit' ? 'can edit' : 'view only';
+        r.children[2].onclick = guard(async () => { await api(`/docs/${cur.id}/shares/${s.username}`, { method: 'DELETE' }); renderShares(); });
+        el.append(r);
+      }
+    }
+    $('#share').onclick = guard(async () => { await flush(); $('#shareErr').textContent = ''; $('#shareUser').value = ''; await renderShares(); $('#shareDlg').showModal(); });
+    $('#shareClose').onclick = () => $('#shareDlg').close();
+    $('#shareAdd').onclick = async () => {
+      try { await api(`/docs/${cur.id}/shares`, { method: 'POST', body: { username: $('#shareUser').value.trim(), role: $('#shareRole').value } }); $('#shareErr').textContent = ''; $('#shareUser').value = ''; renderShares(); }
+      catch (e) { $('#shareErr').textContent = e.message; }
+    };
+    boot();
+  </script>
+</body>
+
+</html>
