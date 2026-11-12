@@ -77,7 +77,7 @@ function createApp(dbPath = process.env.DB_PATH || 'data.db') {
   const withDoc = (need) => (req, res, next) => {
     const doc = getDoc(req.params.id);
     const role = roleFor(doc, req.user);
-    if (!role) return res.status(404).json({ error: 'Document not found.' });
+    if (!role) return res.status(404).json({ error: 'Document not found.' }); // don't leak existence
     const ok = need === 'owner' ? role === 'owner' : need === 'edit' ? role !== 'view' : true;
     if (!ok) return res.status(403).json({ error: need === 'owner' ? 'Only the owner can do this.' : 'You have view-only access.' });
     req.doc = doc; req.role = role; next();

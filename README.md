@@ -19,7 +19,7 @@ Sign in as `alice`, `bob`, or `carol` (mocked auth, cookie-based). To demo shari
 
 ## Deploy
 A `Dockerfile` and `render.yaml` are included (Render web service with a 1 GB persistent disk mounted at `/data`). Any Docker host works; mount a volume at `/data` or documents are lost on redeploy.
-**Live URL: 
+**Live URL:** see `SUBMISSION.md`. Free-tier host: first load may take ~30 s, and data may reset on redeploy.
 
 ## Architecture note
 - **Stack:** Express + `node:sqlite` + one static HTML page with a `contenteditable` editor. No build step, 4 runtime dependencies, so a reviewer can run it in two commands.
